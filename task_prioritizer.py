@@ -61,11 +61,59 @@ class TaskManager:
             "id": len(self.tasks) + 1,
             "text": task_text,
             "created_at": datetime.now().isoformat(),
-            "completed": False
+            "status": "Incomplete",
+            "status_update_time": datetime.now().isoformat()
         }
         self.tasks.append(task)
         self.save_tasks()
         return task
+
+    def update_task(self, task_id):
+        """
+        Update task status 
+        """
+        # check if task exists in list
+
+        for task in self.tasks:
+            if task["id"] == task_id:
+
+                print('Task found. Enter a number to update the task status: ')
+                print('1. Completed')
+                print('2. In progress')
+
+                status_update = input().strip().lower()
+
+                # update task status to complete
+                if status_update == "1":
+                    task["status"] = 'Completed'
+                    task["status_update_time"] = datetime.now().isoformat()
+
+                elif status_update == "2":
+                    task["status"] = 'In progress'
+                    task["status_update_time"] = datetime.now().isoformat()
+
+                print('Task updated')
+                self.save_tasks()
+                return task
+            
+            else:
+                print('Please enter a valid task ID number')
+
+        return False
+                
+    def list_tasks(self):
+        """
+        Display all tasks in a formatted list
+        """
+        if not self.tasks:
+            print("\nNo tasks in your list!")
+            return
+        
+        print("\nYour Task List:")
+        print("-" * 50)
+        for task in self.tasks:
+            print(f"{task['id']}. {task['text']}: {task['status']}")
+        print("-" * 50)
 
 def get_user_task():
     """
@@ -80,14 +128,35 @@ def main():
     task_manager = TaskManager()
     
     while True:
-        task = get_user_task()
-        if task.lower() in ['quit', 'exit']:
-            break
+        print("\nOptions:")
+        print("1. Add task")
+        print("2. Show tasks")
+        print("3. Update task status")
+        print("4. Quit or just enter quit")
         
-        # Add task to manager
-        new_task = task_manager.add_task(task)
-        print(f"Added task: {new_task['text']}")
-        print(f"Current tasks: {len(task_manager.tasks)}")
+        choice = input("\nEnter your choice (1-4): ").strip()
+        
+        if choice == "1":
+            task = get_user_task()
+            if task.lower() in ['quit', 'exit']:
+                break
+            new_task = task_manager.add_task(task)
+            print(f"Added task: {new_task['text']}")
+            
+        elif choice == "2":
+            task_manager.list_tasks()
+            
+        elif choice == "3":
+            task_manager.list_tasks()  # Show tasks first
+
+            print('Enter task ID to update task status')
+        
+            task_id = int(input())
+            
+            task_manager.update_task(task_id)
+            
+        elif choice in ["4", "quit"]:
+            break
         
         # TODO: Add LLM processing here
         # TODO: Add task prioritization here

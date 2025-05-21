@@ -3,6 +3,31 @@
     "id": 1,
     "text": "finish this project",
     "created_at": "2025-05-14T23:09:38.689246",
-    "completed": false
+    "completed": false,
+    "status": "In progress",
+    "status_update_time": "2025-05-20T20:03:31.329108"
+  },
+  {
+    "id": 2,
+    "text": "add deletion function",
+    "created_at": "2025-05-20T18:57:17.666742",
+    "completed": false,
+    "status": "Completed",
+    "status_update_time": "2025-05-20T20:03:31.329108"
+  },
+  {
+    "id": 3,
+    "text": "show me tasks",
+    "created_at": "2025-05-20T18:57:44.726723",
+    "completed": false,
+    "status": "In progress",
+    "status_update_time": "2025-05-20T20:01:16.506987"
+  },
+  {
+    "id": 4,
+    "text": "update",
+    "created_at": "2025-05-20T20:03:41.659584",
+    "status": "Incomplete",
+    "status_update_time": "2025-05-20T20:03:41.659606"
   }
 ]
