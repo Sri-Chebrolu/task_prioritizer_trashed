@@ -67,6 +67,20 @@ class TaskManager:
         self.tasks.append(task)
         self.save_tasks()
         return task
+    
+    def delete_task(self, task_id):
+        """
+        Delete task
+        """
+
+        for i, task in enumerate(self.tasks):
+            if task["id"] == task_id:
+                del self.tasks[i]
+                self.save_tasks()
+                print(f"Task {task_id} deleted successfully!")
+                return True
+        print(f"Task {task_id} not found!")
+        return False
 
     def update_task(self, task_id):
         """
@@ -76,22 +90,7 @@ class TaskManager:
 
         for task in self.tasks:
             if task["id"] == task_id:
-
-                print('Task found. Enter a number to update the task status: ')
-                print('1. Completed')
-                print('2. In progress')
-
-                status_update = input().strip().lower()
-
-                # update task status to complete
-                if status_update == "1":
-                    task["status"] = 'Completed'
-                    task["status_update_time"] = datetime.now().isoformat()
-
-                elif status_update == "2":
-                    task["status"] = 'In progress'
-                    task["status_update_time"] = datetime.now().isoformat()
-
+                
                 print('Task updated')
                 self.save_tasks()
                 return task
@@ -115,53 +114,44 @@ class TaskManager:
             print(f"{task['id']}. {task['text']}: {task['status']}")
         print("-" * 50)
 
-def get_user_task():
-    """
-    Get a task from the user via text input.
-    Returns the task as a string.
-    """
-    print("Enter your task. Enter 'exit' or 'quit' to exit):")
-    task = input().strip()
-    return task
+# user enters prompt into chatbox
+# LLM interprets user query and identifies what action needs to be taken
+# LLM makes function call asssociated with the action that needs to be taken
+
+class LLM:
+    
+    def process_command(self, user_input):
+        """
+        Process user input and determine what action to take
+        """
+        # Passing user input to LLM
+        response_stream = chat(
+            model='mistral',
+            stream=True,
+            messages=[
+                {
+                    'role': 'system',
+                    'content': """You are a task management assistant. Your role is to:
+                    1. Analyze user input
+                    2. Determine the appropriate action
+                    3. Return the action to take"""
+                },
+                {
+                    'role': 'user',
+                    'content': user_input
+                }
+            ]
+        )
+
+        # with streaming, API response is a generator object that lazily produces values
+        # In order to access the content of the response, we need to iterate over the generator object
+        
+        for chunks in response_stream:
+            print(chunks.message.content)
 
 def main():
-    task_manager = TaskManager()
-    
-    while True:
-        print("\nOptions:")
-        print("1. Add task")
-        print("2. Show tasks")
-        print("3. Update task status")
-        print("4. Quit or just enter quit")
-        
-        choice = input("\nEnter your choice (1-4): ").strip()
-        
-        if choice == "1":
-            task = get_user_task()
-            if task.lower() in ['quit', 'exit']:
-                break
-            new_task = task_manager.add_task(task)
-            print(f"Added task: {new_task['text']}")
-            
-        elif choice == "2":
-            task_manager.list_tasks()
-            
-        elif choice == "3":
-            task_manager.list_tasks()  # Show tasks first
-
-            print('Enter task ID to update task status')
-        
-            task_id = int(input())
-            
-            task_manager.update_task(task_id)
-            
-        elif choice in ["4", "quit"]:
-            break
-        
-        # TODO: Add LLM processing here
-        # TODO: Add task prioritization here
-        # TODO: Add calendar integration here
+    llm = LLM()
+    llm.process_command("Add a task to my task list")
 
 if __name__ == "__main__":
     main()
-
