@@ -56,6 +56,7 @@ class TaskManager:
         with open(self.filename, 'w') as f:
             json.dump(self.tasks, f, indent=2)
     
+    # How is task_text extracted from the user_input?
     def add_task(self, task_text):
         task = {
             "id": len(self.tasks) + 1,
@@ -100,7 +101,7 @@ class TaskManager:
 
         return False
                 
-    def list_tasks(self):
+    def list_task(self):
         """
         Display all tasks in a formatted list
         """
@@ -120,38 +121,96 @@ class TaskManager:
 
 class LLM:
     
+    # create instance of tool set agent can use to interact with the to do list
+    def _init_(self, tools):
+        self.tools = []
+
     def process_command(self, user_input):
         """
         Process user input and determine what action to take
         """
         # Passing user input to LLM
-        response_stream = chat(
+        response = chat(
             model='mistral',
-            stream=True,
+            stream=False,
             messages=[
                 {
                     'role': 'system',
                     'content': """You are a task management assistant. Your role is to:
-                    1. Analyze user input
-                    2. Determine the appropriate action
-                    3. Return the action to take"""
+                    1. Understand what the user wants to do with the task list
+                    2. Determine the appropriate action you should take to meet the user's needs
+                    3. Utilize the defined toolset to take action"""
+                    # I wonder if the LLM will extract the task from the user's input and assign as task_text without having to explicitly calling it out
                 },
                 {
                     'role': 'user',
                     'content': user_input
                 }
-            ]
+            ],
+            tools=tools
         )
+
+        print('user input passed to LLM API')
 
         # with streaming, API response is a generator object that lazily produces values
         # In order to access the content of the response, we need to iterate over the generator object
-        
-        for chunks in response_stream:
-            print(chunks.message.content)
+        # after testing stream, it is not worth using when coding in terminal lol. just use print statements to see if LLM API is working lol.
+
+        print(response.message.content)
+
+# create tool set
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "load_task",
+            "description": "Load the task list",
+            "parameters": {},
+
+            "name": "save_task",
+            "description": "Save the task list",
+            "parameters": {},
+
+            "name": "add_task",
+            "description": "Add tasks to the task list",
+            "parameters": {
+                "task_text": {
+                    "type": "string",
+                    "description": "String description of what the task is"
+                }
+            },
+
+            "name": "delete_task",
+            "description": "Delete task from the task list",
+            "parameters": {
+                "task_id": {
+                    "type": "integer",
+                    "description": "Task ID number assigned to each task"
+                }
+            },
+
+            "name": "update_task",
+            "description": "Update task from the task list",
+            "parameters": {
+                "task_id": {
+                    "type": "integer",
+                    "description": "Task ID number assigned to each task"
+                }
+            },
+
+            "name": "list_task",
+            "description": "Print the entire task list",
+            "parameters": {}
+        }
+    }
+]
 
 def main():
+
+    user_input = print("What would you like to do with your task list today?: " input())
+
     llm = LLM()
-    llm.process_command("Add a task to my task list")
+    llm.process_command(user_input)
 
 if __name__ == "__main__":
     main()
