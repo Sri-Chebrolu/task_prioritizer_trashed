@@ -122,7 +122,7 @@ class TaskManager:
 class LLM:
     
     # create instance of tool set agent can use to interact with the to do list
-    def _init_(self, tools):
+    def __init__(self, tools):
         self.tools = []
 
     def process_command(self, user_input):
@@ -136,10 +136,23 @@ class LLM:
             messages=[
                 {
                     'role': 'system',
-                    'content': """You are a task management assistant. Your role is to:
-                    1. Understand what the user wants to do with the task list
-                    2. Determine the appropriate action you should take to meet the user's needs
-                    3. Utilize the defined toolset to take action"""
+                    'content': """
+                    
+                    You are a task management assistant. 
+                    Your role is to: [Instructions]
+                    \n1. Understand what the user wants to do with the task list.
+                    \n2. Determine the appropriate action you should take.
+                    \n3. Utilize the defined toolset to take action.
+                    
+                    \n
+                    
+                    \n[Next Steps]
+                    \n1. Confirm with the user the actions you need to take.
+                    \n2. Execute the actions you need to take.
+                    \n3. Show the user the updated list.
+                    \n4. Do not respond to the user until you have executed the tasks above."
+                    
+                    """
                     # I wonder if the LLM will extract the task from the user's input and assign as task_text without having to explicitly calling it out
                 },
                 {
@@ -207,9 +220,9 @@ tools = [
 
 def main():
 
-    user_input = print("What would you like to do with your task list today?: " input())
+    user_input = input("What would you like to do with your task list today?: ")
 
-    llm = LLM()
+    llm = LLM(tools)
     llm.process_command(user_input)
 
 if __name__ == "__main__":
