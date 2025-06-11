@@ -122,54 +122,132 @@ class TaskManager:
 class LLM:
     
     # create instance of tool set agent can use to interact with the to do list
-    def __init__(self, tools):
-        self.tools = []
+    def __init__(self, tools, task_manager):
+        self.tools = tools
+        self.task_manager = task_manager
 
-    def process_command(self, user_input):
+    def execute_tool_call(self, tool_call):
+        """
+        Execute a tool call and return the result
+        """
+        function_name = tool_call['function']['name']
+        arguments = tool_call['function'].get('arguments', {})
+        
+        # Map function names to TaskManager methods
+        if function_name == 'load_task':
+            return {"result": "Tasks loaded", "tasks": self.task_manager.tasks}
+        elif function_name == 'save_task':
+            self.task_manager.save_tasks()
+            return {"result": "Tasks saved successfully"}
+        elif function_name == 'add_task':
+            task = self.task_manager.add_task(arguments['task_text'])
+            return {"result": "Task added successfully", "task": task}
+        elif function_name == 'delete_task':
+            success = self.task_manager.delete_task(arguments['task_id'])
+            return {"result": "Task deleted successfully" if success else "Task not found"}
+        elif function_name == 'update_task':
+            task = self.task_manager.update_task(arguments['task_id'])
+            return {"result": "Task updated successfully" if task else "Task not found"}
+        elif function_name == 'list_task':
+            self.task_manager.list_task()
+            return {"result": "Task list displayed", "tasks": self.task_manager.tasks}
+        else:
+            return {"error": f"Unknown function: {function_name}"}
+
+    def process_command(self, user_input, conversation_history=None):
         """
         Process user input and determine what action to take
         """
-        # Passing user input to LLM
-        response = chat(
-            model='mistral',
-            stream=False,
-            messages=[
+        # Initialize or use existing conversation history
+        if conversation_history is None:
+            # Initial conversation with LLM
+            messages = [
                 {
                     'role': 'system',
                     'content': """
-                    
-                    You are a task management assistant. 
-                    Your role is to: [Instructions]
-                    \n1. Understand what the user wants to do with the task list.
-                    \n2. Determine the appropriate action you should take.
-                    \n3. Utilize the defined toolset to take action.
-                    
-                    \n
-                    
-                    \n[Next Steps]
-                    \n1. Confirm with the user the actions you need to take.
-                    \n2. Execute the actions you need to take.
-                    \n3. Show the user the updated list.
-                    \n4. Do not respond to the user until you have executed the tasks above."
-                    
-                    """
-                    # I wonder if the LLM will extract the task from the user's input and assign as task_text without having to explicitly calling it out
-                },
-                {
-                    'role': 'user',
-                    'content': user_input
+You are a task management assistant.
+
+[Your role is to]:
+1. Read the user's input and determine what action to take on the task list.
+2. Utilize the defined toolset to take action.
+3. Show the user the updated task list.
+
+[Important Instructions]:
+1. DO NOT explain your reasoning or show steps of your thinking process.
+2. DO NOT list numbered steps of what you plan to do.
+3. Interact with the user naturally, asking only necessary confirmation questions.
+4. When confirming actions, ask directly (e.g., "Should I add 'Email Sarah' to your task list?").
+5. After confirmation, execute the action and show results without explaining the process.
+"""
                 }
-            ],
-            tools=tools
+            ]
+        else:
+            # Use existing conversation history
+            messages = conversation_history
+        
+        # Add the latest user input to messages
+        messages.append({
+            'role': 'user',
+            'content': user_input
+        })
+
+        model='mistral'
+        
+        # Get initial response from LLM
+        response = chat(
+            model=model,
+            stream=False,
+            messages=messages,
+            tools=self.tools
         )
 
         print('user input passed to LLM API')
 
-        # with streaming, API response is a generator object that lazily produces values
-        # In order to access the content of the response, we need to iterate over the generator object
-        # after testing stream, it is not worth using when coding in terminal lol. just use print statements to see if LLM API is working lol.
-
-        print(response.message.content)
+        # Check if the LLM wants to use tools
+        if hasattr(response.message, 'tool_calls') and response.message.tool_calls:
+            # Add the assistant's response to conversation
+            messages.append({
+                'role': 'assistant',
+                'content': response.message.content,
+                'tool_calls': response.message.tool_calls
+            })
+            
+            # Execute each tool call
+            for tool_call in response.message.tool_calls:
+                tool_result = self.execute_tool_call(tool_call)
+                
+                # Add tool result to conversation
+                messages.append({
+                    'role': 'tool',
+                    'content': json.dumps(tool_result),
+                    'tool_call_id': tool_call['id']
+                })
+            
+            # Get final response from LLM after tool execution
+            final_response = chat(
+                model=model,
+                stream=False,
+                messages=messages,
+                tools=self.tools
+            )
+            
+            # Add the final response to conversation history
+            messages.append({
+                'role': 'assistant',
+                'content': final_response.message.content
+            })
+            
+            print(final_response.message.content)
+        else:
+            # No tools needed, just add the response to conversation history
+            messages.append({
+                'role': 'assistant',
+                'content': response.message.content
+            })
+            print(response.message.content)
+        
+        # Return the updated conversation history
+        return messages
 
 # create tool set
 tools = [
@@ -178,52 +256,104 @@ tools = [
         "function": {
             "name": "load_task",
             "description": "Load the task list",
-            "parameters": {},
-
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "save_task",
             "description": "Save the task list",
-            "parameters": {},
-
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "add_task",
             "description": "Add tasks to the task list",
             "parameters": {
-                "task_text": {
-                    "type": "string",
-                    "description": "String description of what the task is"
-                }
-            },
-
+                "type": "object",
+                "properties": {
+                    "task_text": {
+                        "type": "string",
+                        "description": "String description of what the task is"
+                    }
+                },
+                "required": ["task_text"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "delete_task",
             "description": "Delete task from the task list",
             "parameters": {
-                "task_id": {
-                    "type": "integer",
-                    "description": "Task ID number assigned to each task"
-                }
-            },
-
+                "type": "object",
+                "properties": {
+                    "task_id": {
+                        "type": "integer",
+                        "description": "Task ID number assigned to each task"
+                    }
+                },
+                "required": ["task_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "update_task",
             "description": "Update task from the task list",
             "parameters": {
-                "task_id": {
-                    "type": "integer",
-                    "description": "Task ID number assigned to each task"
-                }
-            },
-
+                "type": "object",
+                "properties": {
+                    "task_id": {
+                        "type": "integer",
+                        "description": "Task ID number assigned to each task"
+                    }
+                },
+                "required": ["task_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "list_task",
             "description": "Print the entire task list",
-            "parameters": {}
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
         }
     }
 ]
 
 def main():
-
-    user_input = input("What would you like to do with your task list today?: ")
-
-    llm = LLM(tools)
-    llm.process_command(user_input)
+    tm = TaskManager()
+    llm = LLM(tools, tm)
+    
+    # Initialize conversation history
+    conversation_history = None
+    
+    while True:
+        user_input = input("What would you like to do with your task list today? (type 'exit' to quit): ")
+        if user_input.lower() == 'exit':
+            break
+        
+        # Process command and get updated conversation history
+        conversation_history = llm.process_command(user_input, conversation_history)
 
 if __name__ == "__main__":
     main()
