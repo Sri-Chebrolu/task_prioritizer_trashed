@@ -1,13 +1,5 @@
 [
   {
-    "id": 1,
-    "text": "finish this project",
-    "created_at": "2025-05-14T23:09:38.689246",
-    "completed": false,
-    "status": "In progress",
-    "status_update_time": "2025-05-20T20:03:31.329108"
-  },
-  {
     "id": 2,
     "text": "add deletion function",
     "created_at": "2025-05-20T18:57:17.666742",

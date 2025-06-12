@@ -101,19 +101,6 @@ class TaskManager:
 
         return False
                 
-    def list_task(self):
-        """
-        Display all tasks in a formatted list
-        """
-        if not self.tasks:
-            print("\nNo tasks in your list!")
-            return
-        
-        print("\nYour Task List:")
-        print("-" * 50)
-        for task in self.tasks:
-            print(f"{task['id']}. {task['text']}: {task['status']}")
-        print("-" * 50)
 
 # user enters prompt into chatbox
 # LLM interprets user query and identifies what action needs to be taken
@@ -134,8 +121,10 @@ class LLM:
         arguments = tool_call['function'].get('arguments', {})
         
         # Map function names to TaskManager methods
-        if function_name == 'load_task':
-            return {"result": "Tasks loaded", "tasks": self.task_manager.tasks}
+        if function_name == 'list_task':
+            # Always load fresh data from file and return it
+            tasks = self.task_manager.load_tasks()
+            return {"tasks": tasks}
         elif function_name == 'save_task':
             self.task_manager.save_tasks()
             return {"result": "Tasks saved successfully"}
@@ -148,9 +137,6 @@ class LLM:
         elif function_name == 'update_task':
             task = self.task_manager.update_task(arguments['task_id'])
             return {"result": "Task updated successfully" if task else "Task not found"}
-        elif function_name == 'list_task':
-            self.task_manager.list_task()
-            return {"result": "Task list displayed", "tasks": self.task_manager.tasks}
         else:
             return {"error": f"Unknown function: {function_name}"}
 
@@ -165,12 +151,17 @@ class LLM:
                 {
                     'role': 'system',
                     'content': """
-You are a task management assistant.
+You are a task management assistant with access to specific tools.
+
+MANDATORY: You MUST use the provided tools for every task operation. 
 
 [Your role is to]:
-1. Read the user's input and determine what action to take on the task list.
+1. Read the user's input and determine what action to take.
 2. Utilize the defined toolset to take action.
 3. Show the user the updated task list.
+
+[Tool Usage Guidelines]:
+- You can call the same tool multiple times in a single response to execute the same action across multiple tasks.
 
 [Important Instructions]:
 1. DO NOT explain your reasoning or show steps of your thinking process.
@@ -178,6 +169,7 @@ You are a task management assistant.
 3. Interact with the user naturally, asking only necessary confirmation questions.
 4. When confirming actions, ask directly (e.g., "Should I add 'Email Sarah' to your task list?").
 5. After confirmation, execute the action and show results without explaining the process.
+6. Save the task list after each action.
 """
                 }
             ]
@@ -191,8 +183,12 @@ You are a task management assistant.
             'content': user_input
         })
 
-        model='mistral'
+        model = 'llama3.2:3b'
         
+        # In the process_command method, right before the chat call:
+        print("DEBUG: Number of tools being passed:", len(self.tools))
+        print("DEBUG: Tool names:", [tool['function']['name'] for tool in self.tools])
+
         # Get initial response from LLM
         response = chat(
             model=model,
@@ -205,6 +201,9 @@ You are a task management assistant.
 
         # Check if the LLM wants to use tools
         if hasattr(response.message, 'tool_calls') and response.message.tool_calls:
+            print(f"DEBUG: LLM wants to use {len(response.message.tool_calls)} tools")
+            for tool_call in response.message.tool_calls:
+                print(f"DEBUG: Calling tool: {tool_call['function']['name']}")
             # Add the assistant's response to conversation
             messages.append({
                 'role': 'assistant',
@@ -216,11 +215,14 @@ You are a task management assistant.
             for tool_call in response.message.tool_calls:
                 tool_result = self.execute_tool_call(tool_call)
                 
+                # Debug: Print the tool_call structure to see what's available
+                print("DEBUG: tool_call structure:", tool_call)
+                
                 # Add tool result to conversation
                 messages.append({
                     'role': 'tool',
-                    'content': json.dumps(tool_result),
-                    'tool_call_id': tool_call['id']
+                    'content': json.dumps(tool_result)
+                    # Temporarily remove tool_call_id until we figure out the structure
                 })
             
             # Get final response from LLM after tool execution
@@ -239,6 +241,8 @@ You are a task management assistant.
             
             print(final_response.message.content)
         else:
+            print("DEBUG: No tool calls made by LLM")
+            print(response.model)
             # No tools needed, just add the response to conversation history
             messages.append({
                 'role': 'assistant',
@@ -254,8 +258,8 @@ tools = [
     {
         "type": "function",
         "function": {
-            "name": "load_task",
-            "description": "Load the task list",
+            "name": "list_task",
+            "description": "Load and display the user's current task list from storage. Use this whenever the user wants to see, show, list, display, or view their tasks.",
             "parameters": {
                 "type": "object",
                 "properties": {},
@@ -323,18 +327,6 @@ tools = [
                     }
                 },
                 "required": ["task_id"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "list_task",
-            "description": "Print the entire task list",
-            "parameters": {
-                "type": "object",
-                "properties": {},
-                "required": []
             }
         }
     }
