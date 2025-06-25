@@ -177,26 +177,50 @@ CREATE INDEX idx_tasks_priority_score ON tasks(priority_score);
 ## 7. LLM Integration
 
 ### Prompt Design
-```
-Parse this task input and return structured JSON:
-Input: "{user_input}"
-Calendar context: {calendar_events}
-User preferences: {user_preferences}
-
-Return:
-{
-  "tasks": [
+messages = [
     {
-      "title": "Email Sarah about project",
-      "description": "Follow up on quarterly project status",
-      "priority_score": 7,
-      "estimated_duration": 15,
-      "due_date": "2025-06-25T14:00:00Z",
-      "suggested_time": "2025-06-25T13:00:00Z"
+        "role": "system",
+        "content": """
+        
+        You are a task management assistant with access to specific tools.
+        
+        MANDATORY: You MUST use the provided tools for every task operation. 
+
+        [Your role is to]:
+        1. Read the user's input and determine what action to take.
+        2. Utilize the defined toolset to take action.
+        3. Show the user the updated task list.
+
+        [Tool Usage Guidelines]:
+        - You can call the same tool multiple times in a single response to execute the same action across multiple tasks.
+
+        [Important Instructions]:
+        1. DO NOT explain your reasoning or show steps of your thinking process.
+        2. DO NOT list numbered steps of what you plan to do.
+        3. Interact with the user naturally, asking only necessary confirmation questions.
+        4. When confirming actions, ask directly (e.g., "Should I add 'Email Sarah' to your task list?").
+        5. After confirmation, execute the action and show results without explaining the process.
+        6. Save the task list after each action.
+
+        """
+    },
+    {
+        "role": "user",
+        "content": f"""
+        Parse this task input: "{user_input}"
+        
+        Existing tasks: {existing_tasks}
+        Calendar context: {calendar_events}
+        User preferences: {user_preferences}
+        
+        Return JSON with new tasks and any priority updates to existing tasks:
+        {{
+          "new_tasks": [...],
+          "updated_tasks": [...]
+        }}
+        """
     }
-  ]
-}
-```
+]
 
 ### LLM Service Design
 - Separate microservice for LLM calls
