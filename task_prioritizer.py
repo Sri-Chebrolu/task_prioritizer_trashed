@@ -30,16 +30,6 @@ from ollama import ChatResponse
 import json
 from datetime import datetime
 
-# response: ChatResponse = chat(model='mistral', messages=[
-#   {
-#     'role': 'user',
-#     'content': 'Why is the sky blue?',
-#   },
-# ])
-# print(response['message']['content'])
-# # or access fields directly from the response object
-# print(response.message.content)
-
 class TaskManager:
     def __init__(self, filename="tasks.json"):
         self.filename = filename
@@ -57,13 +47,18 @@ class TaskManager:
             json.dump(self.tasks, f, indent=2)
     
     # How is task_text extracted from the user_input?
-    def add_task(self, task_text):
+    def add_task(self, task_text, priority=None):
+        # Generate next available ID
+        existing_ids = [task["id"] for task in self.tasks] if self.tasks else []
+        next_id = max(existing_ids) + 1 if existing_ids else 1
+        
         task = {
-            "id": len(self.tasks) + 1,
+            "id": next_id,
             "text": task_text,
             "created_at": datetime.now().isoformat(),
             "status": "Incomplete",
-            "status_update_time": datetime.now().isoformat()
+            "status_update_time": datetime.now().isoformat(),
+            "priority": priority
         }
         self.tasks.append(task)
         self.save_tasks()
@@ -71,17 +66,25 @@ class TaskManager:
     
     def delete_task(self, task_id):
         """
-        Delete task
+        Delete task - simpler version
         """
-
-        for i, task in enumerate(self.tasks):
-            if task["id"] == task_id:
-                del self.tasks[i]
-                self.save_tasks()
-                print(f"Task {task_id} deleted successfully!")
-                return True
-        print(f"Task {task_id} not found!")
-        return False
+        # Convert to int if needed
+        task_id = int(task_id) if isinstance(task_id, str) else task_id
+        
+        # Count tasks before deletion
+        original_count = len(self.tasks)
+        
+        # Filter out the task with matching ID
+        self.tasks = [task for task in self.tasks if task["id"] != task_id]
+        
+        # Check if anything was actually deleted
+        if len(self.tasks) < original_count:
+            self.save_tasks()
+            print(f"Task {task_id} deleted successfully!")
+            return True
+        else:
+            print(f"Task {task_id} not found!")
+            return False
 
     def update_task(self, task_id):
         """
@@ -112,7 +115,14 @@ class LLM:
     def __init__(self, tools, task_manager):
         self.tools = tools
         self.task_manager = task_manager
-
+        
+        # Load system prompt once at initialization
+        try:
+            with open('system_prompt.md', 'r') as f:
+                self.system_prompt = f.read()
+        except FileNotFoundError:
+            print('The product was unable to load the prompt')
+        
     def execute_tool_call(self, tool_call):
         """
         Execute a tool call and return the result
@@ -120,10 +130,15 @@ class LLM:
         function_name = tool_call['function']['name']
         arguments = tool_call['function'].get('arguments', {})
         
+        # Add debug prints to see what's being passed
+        print(f"DEBUG: Function name: {function_name}")
+        print(f"DEBUG: Arguments received: {arguments}")
+        print(f"DEBUG: Arguments type: {type(arguments)}")
+        
         # Map function names to TaskManager methods
         if function_name == 'list_task':
-            # Always load fresh data from file and return it
             tasks = self.task_manager.load_tasks()
+            print(f"DEBUG: Raw tasks being sent to LLM: {tasks}")
             return {"tasks": tasks}
         elif function_name == 'save_task':
             self.task_manager.save_tasks()
@@ -132,6 +147,8 @@ class LLM:
             task = self.task_manager.add_task(arguments['task_text'])
             return {"result": "Task added successfully", "task": task}
         elif function_name == 'delete_task':
+            print(f"DEBUG: task_id value: {arguments['task_id']}")
+            print(f"DEBUG: task_id type: {type(arguments['task_id'])}")
             success = self.task_manager.delete_task(arguments['task_id'])
             return {"result": "Task deleted successfully" if success else "Task not found"}
         elif function_name == 'update_task':
@@ -144,33 +161,11 @@ class LLM:
         """
         Process user input and determine what action to take
         """
-        # Initialize or use existing conversation history
         if conversation_history is None:
-            # Initial conversation with LLM
             messages = [
                 {
                     'role': 'system',
-                    'content': """
-You are a task management assistant with access to specific tools.
-
-MANDATORY: You MUST use the provided tools for every task operation. 
-
-[Your role is to]:
-1. Read the user's input and determine what action to take.
-2. Utilize the defined toolset to take action.
-3. Show the user the updated task list.
-
-[Tool Usage Guidelines]:
-- You can call the same tool multiple times in a single response to execute the same action across multiple tasks.
-
-[Important Instructions]:
-1. DO NOT explain your reasoning or show steps of your thinking process.
-2. DO NOT list numbered steps of what you plan to do.
-3. Interact with the user naturally, asking only necessary confirmation questions.
-4. When confirming actions, ask directly (e.g., "Should I add 'Email Sarah' to your task list?").
-5. After confirmation, execute the action and show results without explaining the process.
-6. Save the task list after each action.
-"""
+                    'content': self.system_prompt  # Use the loaded prompt
                 }
             ]
         else:
@@ -348,4 +343,13 @@ def main():
         conversation_history = llm.process_command(user_input, conversation_history)
 
 if __name__ == "__main__":
+    # # Test block only
+    # print("=== Testing load_tasks function ===")
+    # tm = TaskManager()
+    # print(f"Loaded tasks: {tm.tasks}")
+    # print(f"Number of tasks: {len(tm.tasks)}")
+    # for i, task in enumerate(tm.tasks):
+    #     print(f"Task {i+1}: {task}")
+    
+    # Comment out main() to only run the test
     main()

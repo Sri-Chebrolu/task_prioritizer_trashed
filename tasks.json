@@ -1,25 +1,42 @@
 [
   {
+    "id": 1,
+    "text": "cook dinner",
+    "created_at": "2025-06-26T19:32:56.118085",
+    "status": "Incomplete",
+    "status_update_time": "2025-06-26T19:32:56.118153",
+    "priority": "Low"
+  },
+  {
     "id": 2,
-    "text": "add deletion function",
-    "created_at": "2025-05-20T18:57:17.666742",
-    "completed": false,
-    "status": "Completed",
-    "status_update_time": "2025-05-20T20:03:31.329108"
+    "text": "call mom",
+    "created_at": "2025-06-26T19:33:04.912694",
+    "status": "Incomplete",
+    "status_update_time": "2025-06-26T19:33:04.912729",
+    "priority": "Low"
   },
   {
     "id": 3,
-    "text": "show me tasks",
-    "created_at": "2025-05-20T18:57:44.726723",
-    "completed": false,
-    "status": "In progress",
-    "status_update_time": "2025-05-20T20:01:16.506987"
+    "text": "call 911",
+    "created_at": "2025-06-26T19:33:16.205937",
+    "status": "Incomplete",
+    "status_update_time": "2025-06-26T19:33:16.205980",
+    "priority": "Low"
   },
   {
     "id": 4,
-    "text": "update",
-    "created_at": "2025-05-20T20:03:41.659584",
+    "text": "go to hospital for heart attack",
+    "created_at": "2025-06-26T19:34:41.139451",
     "status": "Incomplete",
-    "status_update_time": "2025-05-20T20:03:41.659606"
+    "status_update_time": "2025-06-26T19:34:41.139471",
+    "priority": "Low"
+  },
+  {
+    "id": 5,
+    "text": "buy food",
+    "created_at": "2025-06-26T19:46:59.163837",
+    "status": "Incomplete",
+    "status_update_time": "2025-06-26T19:46:59.163894",
+    "priority": null
   }
 ]
