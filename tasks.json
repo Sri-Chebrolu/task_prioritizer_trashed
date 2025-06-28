@@ -1,42 +1,11 @@
 [
   {
     "id": 1,
-    "text": "cook dinner",
-    "created_at": "2025-06-26T19:32:56.118085",
+    "text": "Complete tax filing and submission",
+    "category": "File Taxes",
+    "priority": "High",
     "status": "Incomplete",
-    "status_update_time": "2025-06-26T19:32:56.118153",
-    "priority": "Low"
-  },
-  {
-    "id": 2,
-    "text": "call mom",
-    "created_at": "2025-06-26T19:33:04.912694",
-    "status": "Incomplete",
-    "status_update_time": "2025-06-26T19:33:04.912729",
-    "priority": "Low"
-  },
-  {
-    "id": 3,
-    "text": "call 911",
-    "created_at": "2025-06-26T19:33:16.205937",
-    "status": "Incomplete",
-    "status_update_time": "2025-06-26T19:33:16.205980",
-    "priority": "Low"
-  },
-  {
-    "id": 4,
-    "text": "go to hospital for heart attack",
-    "created_at": "2025-06-26T19:34:41.139451",
-    "status": "Incomplete",
-    "status_update_time": "2025-06-26T19:34:41.139471",
-    "priority": "Low"
-  },
-  {
-    "id": 5,
-    "text": "buy food",
-    "created_at": "2025-06-26T19:46:59.163837",
-    "status": "Incomplete",
-    "status_update_time": "2025-06-26T19:46:59.163894",
-    "priority": null
+    "created_at": "2025-06-27T18:19:43.889202",
+    "status_update_time": "2025-06-27T18:19:43.889461"
   }
 ]

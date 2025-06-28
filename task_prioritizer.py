@@ -47,7 +47,7 @@ class TaskManager:
             json.dump(self.tasks, f, indent=2)
     
     # How is task_text extracted from the user_input?
-    def add_task(self, task_text, priority=None):
+    def add_task(self, task_text, category=None, priority=None):
         # Generate next available ID
         existing_ids = [task["id"] for task in self.tasks] if self.tasks else []
         next_id = max(existing_ids) + 1 if existing_ids else 1
@@ -55,10 +55,11 @@ class TaskManager:
         task = {
             "id": next_id,
             "text": task_text,
-            "created_at": datetime.now().isoformat(),
+            "category": category,
+            "priority": priority,
             "status": "Incomplete",
-            "status_update_time": datetime.now().isoformat(),
-            "priority": priority
+            "created_at": datetime.now().isoformat(),
+            "status_update_time": datetime.now().isoformat()
         }
         self.tasks.append(task)
         self.save_tasks()
@@ -86,22 +87,24 @@ class TaskManager:
             print(f"Task {task_id} not found!")
             return False
 
-    def update_task(self, task_id):
+    def update_task(self, task_id, **updates):
         """
-        Update task status 
+        Update task with any provided fields
         """
-        # check if task exists in list
-
+        task_id = int(task_id) if isinstance(task_id, str) else task_id
+        
         for task in self.tasks:
             if task["id"] == task_id:
-                
-                print('Task updated')
+                # Update any provided fields
+                for key, value in updates.items():
+                    if key in task:
+                        task[key] = value
+                task["status_update_time"] = datetime.now().isoformat()
                 self.save_tasks()
+                print(f'Task {task_id} updated')
                 return task
-            
-            else:
-                print('Please enter a valid task ID number')
-
+        
+        print(f'Task {task_id} not found')
         return False
                 
 
@@ -144,7 +147,10 @@ class LLM:
             self.task_manager.save_tasks()
             return {"result": "Tasks saved successfully"}
         elif function_name == 'add_task':
-            task = self.task_manager.add_task(arguments['task_text'])
+            task_text = arguments['task_text']
+            category = arguments['category']
+            priority = arguments['priority']      
+            task = self.task_manager.add_task(task_text, category=category, priority=priority)
             return {"result": "Task added successfully", "task": task}
         elif function_name == 'delete_task':
             print(f"DEBUG: task_id value: {arguments['task_id']}")
@@ -152,7 +158,9 @@ class LLM:
             success = self.task_manager.delete_task(arguments['task_id'])
             return {"result": "Task deleted successfully" if success else "Task not found"}
         elif function_name == 'update_task':
-            task = self.task_manager.update_task(arguments['task_id'])
+            task_id = arguments['task_id']
+            updates = {k: v for k, v in arguments.items() if k != 'task_id'}
+            task = self.task_manager.update_task(task_id, **updates)
             return {"result": "Task updated successfully" if task else "Task not found"}
         else:
             return {"error": f"Unknown function: {function_name}"}
@@ -278,16 +286,24 @@ tools = [
         "type": "function",
         "function": {
             "name": "add_task",
-            "description": "Add tasks to the task list",
+            "description": "Add tasks to the task list with priority and category",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "task_text": {
                         "type": "string",
                         "description": "String description of what the task is"
+                    },
+                    "category": {
+                        "type": "string",
+                        "description": "Task category (e.g., Health, Work, Personal, etc.)"
+                    },
+                    "priority": {
+                        "type": "string",
+                        "description": "Task priority: High, Medium, or Low"
                     }
                 },
-                "required": ["task_text"]
+                "required": ["task_text", "category", "priority"]
             }
         }
     },
