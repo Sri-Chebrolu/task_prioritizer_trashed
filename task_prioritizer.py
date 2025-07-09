@@ -166,7 +166,10 @@ class LLM:
             task_id = arguments['task_id']
             updates = {k: v for k, v in arguments.items() if k != 'task_id'}
             task = self.task_manager.update_task(task_id, **updates)
-            return {"result": "Task updated successfully" if task else "Task not found"}
+            if task:  # If update succeeded
+                print("DEBUG: Update successful, triggering save")
+                self.task_manager.save_tasks()  # Force save
+            return {"result": "Task updated and saved" if task else "Task not found"}
         else:
             return {"error": f"Unknown function: {function_name}"}
 
@@ -333,7 +336,7 @@ tools = [
         "type": "function",
         "function": {
             "name": "update_task",
-            "description": "Update task from the task list",
+            "description": "Update task fields. YOU MUST CALL save_tasks() AFTER THIS TO PERSIST CHANGES.",
             "parameters": {
                 "type": "object",
                 "properties": {
