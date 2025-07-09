@@ -47,7 +47,7 @@ class TaskManager:
             json.dump(self.tasks, f, indent=2)
     
     # How is task_text extracted from the user_input?
-    def add_task(self, task_text, category=None, priority=None):
+    def add_task(self, task_text, category=None, priority_score=None, priority_label=None):
         # Generate next available ID
         existing_ids = [task["id"] for task in self.tasks] if self.tasks else []
         next_id = max(existing_ids) + 1 if existing_ids else 1
@@ -56,7 +56,8 @@ class TaskManager:
             "id": next_id,
             "text": task_text,
             "category": category,
-            "priority": priority,
+            "priority label": priority_label,
+            "priority score": priority_score,
             "status": "Incomplete",
             "created_at": datetime.now().isoformat(),
             "status_update_time": datetime.now().isoformat()
@@ -141,16 +142,20 @@ class LLM:
         # Map function names to TaskManager methods
         if function_name == 'list_task':
             tasks = self.task_manager.load_tasks()
-            print(f"DEBUG: Raw tasks being sent to LLM: {tasks}")
-            return {"tasks": tasks}
+            formatted_tasks = [
+                f"{task['id']} {task['text']} / Category: {task['category']} / Priority: {task['priority label']} / Status: {task['status']}"
+                for task in tasks
+            ]
+            return {"tasks": formatted_tasks}
         elif function_name == 'save_task':
             self.task_manager.save_tasks()
             return {"result": "Tasks saved successfully"}
         elif function_name == 'add_task':
             task_text = arguments['task_text']
             category = arguments['category']
-            priority = arguments['priority']      
-            task = self.task_manager.add_task(task_text, category=category, priority=priority)
+            priority_label = arguments['priority_label']
+            priority_score = arguments['priority_score']
+            task = self.task_manager.add_task(task_text, category=category, priority_score=priority_score, priority_label=priority_label)
             return {"result": "Task added successfully", "task": task}
         elif function_name == 'delete_task':
             print(f"DEBUG: task_id value: {arguments['task_id']}")
@@ -303,7 +308,7 @@ tools = [
                         "description": "Task priority: High, Medium, or Low"
                     }
                 },
-                "required": ["task_text", "category", "priority"]
+                "required": ["task_text", "category", "priority_score", "priority_label"]
             }
         }
     },
