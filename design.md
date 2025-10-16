@@ -277,3 +277,65 @@ messages = [
 - Voice input for task creation
 - Smart notifications and reminders
 - Pomodoro timer
+
+## 12. User Interface Design
+
+### 12.1 Design Principles
+- **Frictionless capture**: keep the primary capture entry point no more than one click/tap away, support keyboard-first workflows, and provide immediate feedback that the task was understood.
+- **Prioritization clarity**: surface priority scoring, categories, and scheduling state without requiring hover or secondary clicks; color-coding supports but never replaces text labels.
+- **Context preservation**: let users understand why a task has a given priority/time block by exposing the LLM rationale on demand.
+- **Assistive automation**: highlight suggested actions from the agent while keeping manual override obvious and safe.
+- **Accessibility-first**: maintain WCAG AA contrast, semantic HTML, and focus management to ensure the product works for neurodiverse users relying on keyboards or screen readers.
+
+### 12.2 Information Architecture
+- **Global shell** (top app bar + sidebar on desktop, bottom nav on mobile): `Capture`, `Today`, `Planner`, `Archive`, `Settings`.
+- **Capture**: quick-add overlay plus history of recent captures; always available via `c` keyboard shortcut.
+- **Today**: default landing state with prioritized task stack, time-boxed agenda, and completion controls.
+- **Planner**: timeline view for the upcoming 7 days, conflict indicators, and drag-to-reschedule interactions.
+- **Archive**: completed tasks grouped by week with search and filters for category/priority.
+- **Settings**: user preferences, calendar connections, automation rules, and LLM transparency controls.
+
+### 12.3 Primary Screens & Layouts
+1. **Dashboard / Today view**
+   - **Left rail** (25% width desktop / collapsible mobile): priority filters, category chips, pending automation alerts.
+   - **Main column**: stack of cards sorted by priority score; each card shows task title, priority label + score, category, estimated duration, next scheduled slot, and agent rationale preview.
+   - **Right column** (desktop only): timeline agenda synced with Google Calendar, showing busy blocks, proposed slots, and drag handles for manual adjustments.
+   - **Empty state**: celebratory illustration + prompt to capture future tasks and review archive.
+
+2. **Capture overlay** (activates as modal or slide-in drawer)
+   - Multiline input supporting markdown-like quick syntax (`#` for category, `!10` for priority override, `@today` for due date).
+   - Attachments section for voice notes or links (stubbed for future).
+   - Preview pill area showing how the task will be parsed before confirmation.
+   - Secondary actions: "Save draft", "Ask agent to clarify", "Capture and schedule".
+
+3. **Planner view**
+   - Weekly horizontal calendar grid with drag-and-drop tasks.
+   - Conflict panel on the right summarizing overlapping events and offering auto-resolve buttons.
+   - Gantt-like lane for tasks without assigned time slots highlighted in a "Needs scheduling" bucket.
+
+4. **Task detail drawer**
+   - Slides over current screen; shows full description, metadata (priority history, category confidence, LLM rationale), status timeline, and quick actions (complete, snooze, reschedule, delegate).
+   - Includes comment thread for notes and transcripts from voice captures.
+
+### 12.4 Interaction States & Feedback
+- **Processing**: tasks awaiting LLM structuring display a shimmer skeleton with status tag `Processing…` and a message about the expected completion time; updates in real time via WebSocket.
+- **Agent suggestions**: highlight with a neutral blue badge `Suggested` and provide accept/modify/dismiss controls; decisions logged in task history.
+- **Conflicts**: calendar clashes flagged with a red dot on both the task card and timeline slot; clicking shows conflict reasons and alternative slots.
+- **Completion**: marking complete triggers a satisfying micro-interaction (progress ring + check burst), updates calendar event, and offers optional retrospective insight ("You finished 5 high-priority tasks this week").
+- **Error states**: inline error toasts explain the issue and offer retry or manual override; persistent errors surface in the left rail alerts.
+
+### 12.5 Responsive Behavior
+- **Mobile**: condense left rail into top-level filter chips, collapse right column into a swipeable agenda panel, and convert drag-and-drop scheduling into tap-to-select slot interactions.
+- **Tablet**: maintain two-column layout with an adaptive third panel when space allows; support pencil drag for scheduling.
+- **Large desktop**: allow side-by-side Planner and Today views via split screen to support multitasking.
+
+### 12.6 Accessibility & Visual Language
+- Color palette centered on high-contrast neutrals with accent colors for priority tiers (High = tomato, Medium = amber, Low = cool gray) while always pairing with text labels.
+- Typography hierarchy using two weights (e.g., `Inter` 16/24 for body, 20/28 for headings) with 1.5 line height for readability.
+- Keyboard support for global shortcuts (`c` capture, `t` Today, `p` Planner, `j/k` navigate tasks, `space` complete) and visible focus outlines.
+- Motion reduced preference respected: replace micro-animations with subtle fades.
+
+### 12.7 Future UI Enhancements
+- Shared view toggle for accountability partners once collaboration becomes in scope.
+- AI storyboard that visualizes why the agent picked certain priorities using timeline comparisons.
+- Voice capture widget with waveform visualization and auto-transcribe editing state.

@@ -1,0 +1,133 @@
+[
+  {
+    "id": 1,
+    "title": "Prep board meeting brief",
+    "description": "Prep slides and talking points for investor board meeting. Align with finance draft and sync with CEO.",
+    "category": "Work/Career",
+    "priorityScore": 10,
+    "priorityLabel": "High",
+    "status": "processing",
+    "estimatedMinutes": 90,
+    "scheduledStart": "2025-07-08T09:00:00Z",
+    "scheduledEnd": "2025-07-08T10:30:00Z",
+    "rationale": "Investor update due tomorrow; agent scheduled a morning block while focus energy is highest.",
+    "suggestions": ["Send draft to finance 24h ahead"],
+    "conflict": false,
+    "history": [
+      {
+        "at": "2025-07-08T08:05:00Z",
+        "description": "Task captured via voice note"
+      },
+      {
+        "at": "2025-07-08T08:06:00Z",
+        "description": "Agent parsed task and proposed schedule"
+      }
+    ],
+    "createdAt": "2025-07-08T08:05:00Z",
+    "updatedAt": "2025-07-08T08:06:00Z"
+  },
+  {
+    "id": 2,
+    "title": "Follow up with Sarah about contract",
+    "description": "Confirm contract redlines and align on signatures before EOD.",
+    "category": "Work/Career",
+    "priorityScore": 9,
+    "priorityLabel": "High",
+    "status": "scheduled",
+    "estimatedMinutes": 30,
+    "scheduledStart": "2025-07-08T11:30:00Z",
+    "scheduledEnd": "2025-07-08T12:00:00Z",
+    "rationale": "Due date is today. Placed before lunch to secure turnaround time.",
+    "suggestions": ["Prepare bullet summary before call"],
+    "conflict": true,
+    "history": [
+      {
+        "at": "2025-07-08T07:55:00Z",
+        "description": "Task sent via Slack integration"
+      },
+      {
+        "at": "2025-07-08T08:20:00Z",
+        "description": "Agent scheduled follow-up and detected conflict with Lunch & Learn"
+      }
+    ],
+    "createdAt": "2025-07-08T07:55:00Z",
+    "updatedAt": "2025-07-08T08:20:00Z"
+  },
+  {
+    "id": 3,
+    "title": "Research AC options for apartment",
+    "description": "Compare 3 models under $600 with installation included.",
+    "category": "Home/Household",
+    "priorityScore": 6,
+    "priorityLabel": "Medium",
+    "status": "needs_scheduling",
+    "estimatedMinutes": 45,
+    "scheduledStart": null,
+    "scheduledEnd": null,
+    "rationale": "User flagged as important for this week; awaiting budget confirmation before scheduling.",
+    "suggestions": ["Agent can auto-schedule once preferred budget is set"],
+    "conflict": false,
+    "history": [
+      {
+        "at": "2025-07-08T09:45:00Z",
+        "description": "Task imported from yesterday's inbox"
+      }
+    ],
+    "createdAt": "2025-07-08T09:45:00Z",
+    "updatedAt": "2025-07-08T09:45:00Z"
+  },
+  {
+    "id": 4,
+    "title": "Curate podcast playlist",
+    "description": "Collect 5 episodes for weekend run.",
+    "category": "Relationships",
+    "priorityScore": 2,
+    "priorityLabel": "Low",
+    "status": "deferred",
+    "estimatedMinutes": 30,
+    "scheduledStart": "2025-07-11T18:00:00Z",
+    "scheduledEnd": "2025-07-11T18:30:00Z",
+    "rationale": "Deferred to Friday evening per user preference.",
+    "suggestions": [],
+    "conflict": false,
+    "history": [
+      {
+        "at": "2025-07-08T06:30:00Z",
+        "description": "Task deferred during morning review"
+      }
+    ],
+    "createdAt": "2025-07-08T06:30:00Z",
+    "updatedAt": "2025-07-08T06:30:00Z"
+  },
+  {
+    "id": 5,
+    "title": "Schedule annual physical",
+    "description": "Book appointment with Dr. Lee and upload insurance card.",
+    "category": "Health",
+    "priorityScore": 8,
+    "priorityLabel": "High",
+    "status": "completed",
+    "estimatedMinutes": 15,
+    "scheduledStart": "2025-07-08T14:30:00Z",
+    "scheduledEnd": "2025-07-08T14:45:00Z",
+    "rationale": "Completed earlier today. Agent sent confirmation email.",
+    "suggestions": [],
+    "conflict": false,
+    "history": [
+      {
+        "at": "2025-07-08T10:00:00Z",
+        "description": "Agent suggested appointment options"
+      },
+      {
+        "at": "2025-07-08T13:00:00Z",
+        "description": "User confirmed slot with clinic"
+      },
+      {
+        "at": "2025-07-08T14:10:00Z",
+        "description": "Task marked complete"
+      }
+    ],
+    "createdAt": "2025-07-08T10:00:00Z",
+    "updatedAt": "2025-07-08T14:10:00Z"
+  }
+]

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PriorityOS — Task Prioritizer</title>
+  <link rel="stylesheet" href="assets/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar navigation -->
+    <nav class="sidebar" aria-label="Primary">
+      <div class="logo">
+        <span class="logo-mark">P</span>
+        <span class="logo-text">PriorityOS</span>
+      </div>
+      <button class="capture-btn" aria-label="Capture task" data-shortcut="c">+ Capture</button>
+      <ul class="nav-list">
+        <li class="nav-item active">
+          <span class="nav-icon">📋</span>
+          <span>Today</span>
+          <kbd>T</kbd>
+        </li>
+        <li class="nav-item">
+          <span class="nav-icon">🗓️</span>
+          <span>Planner</span>
+          <kbd>P</kbd>
+        </li>
+        <li class="nav-item">
+          <span class="nav-icon">📦</span>
+          <span>Archive</span>
+        </li>
+        <li class="nav-item">
+          <span class="nav-icon">⚙️</span>
+          <span>Settings</span>
+        </li>
+      </ul>
+      <div class="alerts">
+        <h3>Alerts</h3>
+        <div class="alert-card">
+          <span class="alert-dot"></span>
+          <div>
+            <p>2 scheduling conflicts detected</p>
+            <button class="link">Review conflicts</button>
+          </div>
+        </div>
+        <div class="alert-card info">
+          <span class="alert-dot"></span>
+          <div>
+            <p>Agent has 3 suggestions</p>
+            <button class="link">Open suggestions</button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main workspace -->
+    <main class="workspace">
+      <header class="workspace-header">
+        <div>
+          <h1>Today</h1>
+          <p class="subtitle">Auto-prioritized tasks synced with your calendar</p>
+        </div>
+        <div class="workspace-actions">
+          <button class="ghost">Focus mode</button>
+          <button class="ghost">Export day</button>
+          <button class="primary">Capture task</button>
+        </div>
+      </header>
+
+      <section class="filters" aria-label="Task filters">
+        <div class="priority-filters" role="group" aria-label="Priority filters">
+          <button class="chip selected" data-priority="all" aria-pressed="true">All priorities</button>
+          <button class="chip high" data-priority="high" aria-pressed="false">High (8-10)</button>
+          <button class="chip medium" data-priority="medium" aria-pressed="false">Medium (4-7)</button>
+          <button class="chip low" data-priority="low" aria-pressed="false">Low (0-3)</button>
+        </div>
+        <div class="category-filters" role="group" aria-label="Category filters">
+          <span class="label">Categories</span>
+          <button class="chip selected" data-category="all" aria-pressed="true">All categories</button>
+          <button class="chip" data-category="Health" aria-pressed="false">Health</button>
+          <button class="chip" data-category="Work/Career" aria-pressed="false">Work/Career</button>
+          <button class="chip" data-category="Home/Household" aria-pressed="false">Home/Household</button>
+          <button class="chip" data-category="Administrative" aria-pressed="false">Administrative</button>
+        </div>
+      </section>
+
+      <section class="content-grid">
+        <div class="task-stack" data-component="task-stack" aria-live="polite"></div>
+
+        <aside class="agenda" aria-label="Timeline agenda">
+          <header class="agenda-header">
+            <h2>Timeline</h2>
+            <div class="agenda-controls">
+              <button class="ghost" data-view="day">Day</button>
+              <button class="ghost selected" data-view="week">Week</button>
+            </div>
+          </header>
+          <div class="timeline" data-component="timeline" aria-live="polite"></div>
+          <div class="needs-scheduling" data-component="needs-scheduling">
+            <h3>Needs scheduling</h3>
+            <div class="empty">Every task is scheduled — nice work!</div>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <!-- Task detail drawer -->
+  <aside class="task-drawer" aria-label="Task details" aria-hidden="true">
+    <header>
+      <h2 data-drawer="title">Task title</h2>
+      <button class="ghost" data-action="close-drawer">Close</button>
+    </header>
+    <div class="drawer-section">
+      <h3>Summary</h3>
+      <p data-drawer="description">Description goes here.</p>
+      <dl class="meta-grid">
+        <div>
+          <dt>Priority</dt>
+          <dd data-drawer="priority">—</dd>
+        </div>
+        <div>
+          <dt>Category</dt>
+          <dd data-drawer="category">—</dd>
+        </div>
+        <div>
+          <dt>Scheduled</dt>
+          <dd data-drawer="schedule">—</dd>
+        </div>
+        <div>
+          <dt>Status</dt>
+          <dd data-drawer="status">—</dd>
+        </div>
+      </dl>
+    </div>
+    <div class="drawer-section">
+      <h3>Agent rationale</h3>
+      <p data-drawer="rationale">Rationale not yet available.</p>
+    </div>
+    <div class="drawer-section history-section">
+      <h3>History</h3>
+      <ul class="history" data-drawer="history"></ul>
+    </div>
+    <div class="drawer-actions">
+      <button class="primary" data-action="complete-task">Mark complete</button>
+      <button class="ghost" data-action="reschedule-task">Reschedule</button>
+      <button class="ghost" data-action="delegate-task">Delegate</button>
+    </div>
+  </aside>
+
+  <!-- Capture modal -->
+  <div class="capture-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="capture-content" role="document">
+      <header>
+        <div>
+          <h2>Quick capture</h2>
+          <p>Use `#` for category, `!` for priority override, `@` for due date</p>
+        </div>
+        <button class="ghost" aria-label="Close capture" data-action="close-capture">×</button>
+      </header>
+      <textarea placeholder="Email Sarah about contract update @today !9 #work" data-capture="input"></textarea>
+      <div class="capture-preview" data-capture="preview" hidden>
+        <div>
+          <strong>Parsed task</strong>
+          <p data-capture="preview-text"></p>
+        </div>
+        <div class="pill-row" data-capture="preview-pills"></div>
+      </div>
+      <p class="capture-status" data-capture="status" hidden></p>
+      <footer>
+        <button class="ghost" data-action="save-draft">Save draft</button>
+        <button class="ghost" data-action="clarify-task">Ask agent to clarify</button>
+        <button class="primary" data-action="submit-task">Capture & schedule</button>
+      </footer>
+    </div>
+  </div>
+
+  <script type="module" src="assets/app.js"></script>
+</body>
+</html>
